@@ -1,36 +1,78 @@
-// App.js
-import React, { useState } from "react";
-import { Box, Button, Typography, Stepper, Step, StepLabel, ThemeProvider, CssBaseline, createTheme } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Button, Typography, ThemeProvider, CssBaseline, createTheme, Stepper, Step, StepLabel, Fade } from "@mui/material";
 import StudentForm from "./StudentForm"; 
-import FacultyForm from "./FacultyForm"; 
 import WebcamCapture from "./webcamcapture";
-import Header from "./header"; // Ensure only one header is imported
 import IDPreview from "./IDPreview";
-const steps = ["User Type", "Details Form", "Capture Image", "Preview ID"];
+import Header from "./header";
+import "../style/matrix.css"; 
+
+
+import frameKratos from "../assets/1.png";
+import frameArthur from "../assets/2.png";
+import frameEllie from "../assets/3.png";
+import frameLara from "../assets/4.png";
+import defaultFrame from "../assets/Idframe.png";
+
+const stepTexts = [
+  "Welcome to the World of\nGaming",
+  "New Game\n Mission 1 : Capture the Moment",
+  "Objective 1: Capture a Picture of Yourself",
+  "Objective 2: Send it to you"
+];
+
+const characterFrames = {
+  "Kratos": frameKratos,
+  "Arthur Morgan": frameArthur,
+  "Ellie": frameEllie,
+  "Lara Croft": frameLara
+};
 
 const App = () => {
-
   const [activeStep, setActiveStep] = useState(0);
-  const [userType, setUserType] = useState("");
   const [formData, setFormData] = useState({});
   const [capturedImage, setCapturedImage] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [fadeIn, setFadeIn] = useState(true);
 
   const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    setFadeIn(false);
+    setTimeout(() => {
+      setActiveStep((prev) => prev + 1);
+      setFadeIn(true);
+    }, 300);
   };
 
+  useEffect(() => {
+    const goFullScreen = () => {
+      const elem = document.documentElement; // Get the entire page
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) { // Firefox
+        elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) { // Chrome, Safari, Edge
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { // Internet Explorer
+        elem.msRequestFullscreen();
+      }
+    };
+
+    goFullScreen();
+  }, []);
+
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    setFadeIn(false);
+    setTimeout(() => {
+      setActiveStep((prev) => prev - 1);
+      setFadeIn(true);
+    }, 300);
   };
 
   const handleFormSubmit = (data) => {
-    setFormData(data);
-    handleNext();
-  };
-
-  const handleUserTypeSelection = (type) => {
-    setUserType(type);
+    console.log("Received form data:", data);
+    setFormData({
+      gender: data.gender,
+      character: data.character,
+      frame: characterFrames[data.character] || defaultFrame,
+    });
     handleNext();
   };
 
@@ -39,109 +81,109 @@ const App = () => {
     handleNext();
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
-  const renderStepContent = (step) => {
-    switch (step) {
-      case 0:
-        return (
-          <Box>
-            <Typography variant="h6" align="center">
-              Are you a Student or Faculty?
-            </Typography>
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-              <Button variant="contained" onClick={() => handleUserTypeSelection("student")} sx={{ mr: 2 }}>
-                Student
-              </Button>
-              <Button variant="contained" onClick={() => handleUserTypeSelection("faculty")}>
-                Faculty
-              </Button>
-            </Box>
-          </Box>
-        );
-      case 1:
-        return userType === "student" ? (
-          <StudentForm handleFormSubmit={handleFormSubmit} handleBack={handleBack} />
-        ) : (
-          <FacultyForm handleFormSubmit={handleFormSubmit} handleBack={handleBack} />
-        );
-      case 2:
-        return (
-          <Box>
-            <Typography variant="h6" align="center" sx={{ mb: 2 }}>
-              Capture your Image
-            </Typography>
-            <WebcamCapture onCapture={handleImageCapture} />
-  
-            {/* Add Next and Back buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-              <Button variant="contained" onClick={handleBack} sx={{ mr: 2 }}>
-                Back
-              </Button>
-              <Button 
-                variant="contained" 
-                onClick={handleNext} 
-                  disabled={!capturedImage}// Disable Next until image is captured
-                sx={{ ml: 2 }}
-              >
-                Next
-              </Button>
-            </Box>
-          </Box>
-        );
-      case 3:
-        console.log("Preview: ", { formData, capturedImage });
-
-      if (!formData || !capturedImage) {
-        return <Typography variant="body1" align="center">Missing data, please go back and try again.</Typography>;
-      }
-
-      return (
-        <Box sx={{ textAlign: "center" }}>
-          
-            
-          <IDPreview data={formData} img={capturedImage}/>
-          <Button variant="contained" color="primary" onClick={handleBack} sx={{ mt: 3 }}>
-            Back
-          </Button>
-        </Box>
-      );
-    default:
-      return null;
-  }
-};
-
-  // Define a custom color palette for light and dark modes
   const theme = createTheme({
     palette: {
-      mode: darkMode ? "dark" : "light",
-      primary: {
-        main: darkMode ? "#90caf9" : "#1976d2",
-      },
-      secondary: {
-        main: darkMode ? "#f48fb1" : "#d32f2f",
-      },
+      mode: "dark",
+      primary: { main: "#0f0" },
+      secondary: { main: "#d500f9" },
+      background: { default: "#000", paper: "#000" },
+    },
+    typography: {
+      fontFamily: "monospace",
     },
   });
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Header toggleDarkMode={toggleDarkMode} />
-      <Box sx={{ width: "100%", mt: 5 }}>
-        <Stepper activeStep={activeStep} alternativeLabel>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-        <Box sx={{ mt: 5 }}>
-          {renderStepContent(activeStep)}
+      <Header />
+      <Fade in={fadeIn} timeout={500}>
+        <Box sx={{ maxHeight: "100vh", p: 2 }}>
+          {activeStep === 0 ? (
+            <Box className="matrix-container" textAlign="center">
+              <Typography className="matrix-text" data-text={stepTexts[activeStep]} sx={{ fontSize: { xs: "2rem", sm: "4rem", md: "6rem" }, whiteSpace: "pre-line" }}>
+                {stepTexts[activeStep]}
+              </Typography>
+              <Button
+                variant="text"
+                onClick={handleNext}
+                className="blinking"
+                sx={{
+                  mt: 3,
+                  color: "#0f0",
+                  fontSize: { xs: "1rem", sm: "1.5rem", md: "2rem" },
+                  fontFamily: "monospace",
+                  textTransform: "none",
+                  animation: "blink 2s infinite",
+                }}
+              >
+                Press Here to Continue
+              </Button>
+            </Box>
+          ) : (
+            <Box sx={{ textAlign: "center", mt: 5 }}>
+              <Typography variant="h2" sx={{ color: "#0f0", whiteSpace: "pre-line", fontSize: { xs: "1.5rem", sm: "2rem", md: "3rem" } }}>
+                {stepTexts[activeStep]}
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ visibility: "hidden", height: 0 }}>
+            <Stepper activeStep={activeStep} alternativeLabel>
+              {stepTexts.map((label, index) => (
+                <Step key={index}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+          </Box>
+          {activeStep === 1 ? (
+            <StudentForm handleFormSubmit={handleFormSubmit} handleBack={handleBack} />
+          ) : activeStep === 2 ? (
+            <WebcamCapture onCapture={handleImageCapture} character={formData.character} handleBack={handleBack}/>
+          ) : activeStep === 3 ? (
+            <IDPreview data={formData} img={capturedImage} frame={formData.frame} handleNext={handleNext}/>
+          ) : activeStep === 4 ? (
+            <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center", 
+              alignItems: "center", 
+              height: "100vh",
+              width: "100vw", 
+              backgroundColor: "black",
+              flexDirection: "column",
+              textAlign: "center",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: { xs: "3rem", md: "6rem" },
+                fontWeight: "bold",
+                color: "#FFD700",
+                textShadow: "4px 4px 10px #FF4500",
+                fontFamily: "'Pricedown', sans-serif",
+              }}
+            >
+              Mission Passed!
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: { xs: "2rem", md: "4rem" },
+                fontWeight: "bold",
+                color: "#FFF",
+                textShadow: "4px 4px 10px #000",
+                fontFamily: "'Pricedown', sans-serif",
+              }}
+            >
+              Respect +
+            </Typography>
+          </Box>
+          
+
+          ) : null}
+          
         </Box>
-      </Box>
+      </Fade>
     </ThemeProvider>
   );
 };
